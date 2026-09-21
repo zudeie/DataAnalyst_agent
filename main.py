@@ -2,13 +2,15 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.prebuilt import ToolNode
 from langgraph.graph.message import add_messages
 from typing import Annotated, TypedDict
+from pydantic import BaseModel
 from langchain_core.messages import BaseMessage
 from langchain_ollama import ChatOllama   
 from tools import query_database
 from dotenv import load_dotenv
 
 load_dotenv()
-class State(TypedDict):
+class State(BaseModel):
+    user_input: str
     messages: Annotated[list[BaseMessage], add_messages]
 
 tools = [query_database]
