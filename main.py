@@ -5,7 +5,8 @@ from typing import Annotated, TypedDict
 from pydantic import BaseModel
 from langchain_core.messages import BaseMessage, HumanMessage
 from langchain_ollama import ChatOllama   
-from tools import query_database
+from langchain.agents import create_agent
+from tools import query_database,generate_visualization
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,11 +14,16 @@ class Analyst_State(BaseModel):
     chart_json:str =""
     messages: Annotated[list[BaseMessage], add_messages]
 
-tools = [query_database]
+tools = [query_database,generate_visualization]
 
-Analyst_agent = ChatOllama(model="qwen3:14b",
+with open('system_prompt.md', 'r') as f:
+    syst_prmt = f.read()
+
+llm = ChatOllama(model="qwen3:14b",
                        temperature=0.1,
-                       num_ctx=8192,).bind_tools(tools)
+                       num_ctx=8192,)
+
+Analyst_agent = create_agent(llm, tools=tools, system_prompt=syst_prmt)
 
 def chatAnalyst(state: Analyst_State):
     response = Analyst_agent.invoke(state.messages)
